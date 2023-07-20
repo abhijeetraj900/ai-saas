@@ -2,7 +2,7 @@
 import axios from "axios";
 import * as z from "zod";
 import { Heading } from "@/components/heading";
-import { MessageSquare } from "lucide-react";
+import { Code, Divide } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -18,8 +18,9 @@ import { Loader } from "@/components/loader";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avater";
 import { BotAvatar } from "@/components/bot-avatar";
+import  ReactMarkdown  from "react-markdown"
 
-const ConversationPage = () => {
+const CodePage = () => {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -31,19 +32,19 @@ const ConversationPage = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onsubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const userMessage: ChatCompletionRequestMessage = {
+      const userMessages: ChatCompletionRequestMessage = {
         role: "user",
         content: values.prompt,
       };
-      const newMessages = [...messages, userMessage];
+      const newMessages = [...messages, userMessages];
 
-      const response = await axios.post("/api/conversation", {
+      const response = await axios.post("/api/code", {
         messages: newMessages,
       });
 
-      setMessages((current) => [...current, userMessage, response.data]);
+      setMessages((current) => [...current, userMessages, response.data]);
 
       form.reset();
     } catch (error: any) {
@@ -56,18 +57,18 @@ const ConversationPage = () => {
   return (
     <div>
       <Heading
-        title="Conversation"
-        description="Our most advanced conversation model"
-        icon={MessageSquare}
-        iconColor="text-violet-500"
-        bgcolor="bg-violet-500/10"
+        title="Code Generation"
+        description="Generate code using  descriptive text"
+        icon={Code}
+        iconColor="text-green-700"
+        bgcolor="bg-green-700/10"
       />
 
       <div className="px-4 lg:px-8">
         <div>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={form.handleSubmit(onsubmit)}
               className=" rounded-lg 
                         border w-full p-4 px-3
                         md:px-6
@@ -84,7 +85,7 @@ const ConversationPage = () => {
                        focus-visible:ring-0 
                        focus-visible:ring-transparent"
                         disabled={isLoading}
-                        placeholder="What's your opinion on the role of artificial intelligence in shaping the future of humanity?"
+                        placeholder="Simple toggle button using reatc hooks."
                         {...field}
                       />
                     </FormControl>
@@ -125,9 +126,18 @@ const ConversationPage = () => {
                 )}
               >
                 {message.role === "user" ? <UserAvatar/> : <BotAvatar/>}
-                <p className="text-sm">
-                {message.content}
-                </p>
+                <ReactMarkdown components={{
+                  pre: ({ node, ...props }) => (
+                    <div className="overflow-auto w-full my-2 bg-black/10 p-2 rounded-lg">
+                      <pre {...props} />
+                    </div>
+                  ),
+                  code: ({ node, ...props }) => (
+                    <code className="bg-black/10 rounded-lg p-1" {...props} />
+                  )
+                }} className="text-sm overflow-hidden leading-7">
+                  {message.content || ""}
+                </ReactMarkdown>
                
               </div>
             ))}
@@ -138,4 +148,4 @@ const ConversationPage = () => {
   );
 };
 
-export default ConversationPage;
+export default CodePage;
